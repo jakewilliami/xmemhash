@@ -6,3 +6,4 @@ authors = ["Jake W. Ireland <jakewilliami@icloud.com>"]
 
 [dependencies]
 clap = { version = "4.5.20", features = ["cargo", "wrap_help", "derive"] }
+infer = "0.16.0"

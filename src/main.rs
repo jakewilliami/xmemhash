@@ -1,6 +1,9 @@
 use clap::{crate_authors, crate_name, crate_version, ArgAction, Parser};
+use std::process;
 
 mod algo;
+mod archive;
+mod file;
 
 use algo::HashAlgo;
 
@@ -42,6 +45,16 @@ struct Cli {
 }
 
 fn main() {
-    // let cli = Cli::parse();
-    todo!()
+    let cli = Cli::parse();
+
+    if !file::path_is_valid(&cli.file_path) {
+        eprintln!(
+            "[ERROR] File is not a valid input: {}",
+            file::path_invalid_reason(&cli.file_path)
+        );
+        process::exit(1);
+    }
+
+    todo!();
+    process::exit(0);
 }
