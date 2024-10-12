@@ -4,6 +4,7 @@ use std::process;
 mod algo;
 mod archive;
 mod file;
+mod hash;
 
 use algo::HashAlgo;
 
@@ -55,6 +56,12 @@ fn main() {
         process::exit(1);
     }
 
-    todo!();
+    for file in archive::get_file_data_from_archive(&cli.file_path) {
+        let name = file.name();
+        let hash = hash::get_hash_from_enclosed_file(&file, &cli.hash);
+        // TODO: format tabular like sha256sum
+        println!("{hash} {name}");
+    }
+
     process::exit(0);
 }
