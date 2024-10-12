@@ -10,9 +10,6 @@ mod hash;
 use algo::HashAlgo;
 
 // TODO:
-//   - Ensure reading file is piecewise so that the full inner contents of the archive never exists in memory, only parts of it
-//   - Handle multiple inner files
-//   - Support zip
 //   - Support 7z
 //   - Support password-protected archives
 //   - Support gz and/or tar?

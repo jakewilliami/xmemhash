@@ -10,7 +10,6 @@ pub enum ArchiveType {
     Zip,
 }
 
-#[derive(Debug)]
 pub struct EnclosedFile {
     path: Option<PathBuf>,
     pub bytes: Vec<u8>,
@@ -34,7 +33,7 @@ impl FromStr for ArchiveType {
     fn from_str(input: &str) -> Result<ArchiveType, Self::Err> {
         match input {
             "application/zip" => Ok(ArchiveType::Zip),
-            // "application/x-7z-compressed" => ArchiveType::7z,
+            // "application/x-7z-compressed" => Ok(ArchiveType::7z),
             _ => Err(()),
         }
     }
