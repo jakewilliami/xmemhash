@@ -6,6 +6,7 @@ mod algo;
 mod archive;
 mod file;
 mod hash;
+mod sevenzip;
 mod zip;
 
 use algo::HashAlgo;
@@ -13,7 +14,8 @@ use algo::HashAlgo;
 // TODO:
 //   - Support gz and/or tar?
 //   - Add support for sha1 and md5 hashes
-//   - Consider using something like compress-tools or archive-reader instead of handling separate archive formats myself
+//   - Consider using something like compress-tools or archive-reader or unzip-rs instead of handling separate archive formats myself.  See also tools like ouch-org/ouch
+//   - Support nested folders
 
 #[derive(Parser)]
 #[command(

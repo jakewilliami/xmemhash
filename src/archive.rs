@@ -1,9 +1,10 @@
+use super::sevenzip;
 use super::zip;
 use std::{path::PathBuf, str::FromStr};
 
 pub enum ArchiveType {
     Zip,
-    // SevenZip,
+    SevenZip,
 }
 
 pub struct EnclosedFile {
@@ -29,7 +30,7 @@ impl FromStr for ArchiveType {
     fn from_str(input: &str) -> Result<ArchiveType, Self::Err> {
         match input {
             "application/zip" => Ok(ArchiveType::Zip),
-            // "application/x-7z-compressed" => Ok(ArchiveType::SevenZip),
+            "application/x-7z-compressed" => Ok(ArchiveType::SevenZip),
             _ => Err(()),
         }
     }
@@ -39,5 +40,6 @@ impl FromStr for ArchiveType {
 pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<EnclosedFile> {
     match archive_type {
         ArchiveType::Zip => zip::get_file_data_from_zip_archive(path),
+        ArchiveType::SevenZip => sevenzip::get_file_from_7z_archive(path),
     }
 }
