@@ -1,4 +1,4 @@
-use super::archive::EnclosedFile;
+use crate::archive::EnclosedFile;
 use sevenz_rust::{Password, SevenZReader};
 use std::path::PathBuf;
 

@@ -4,10 +4,9 @@ use tabular::{row, Table};
 
 mod algo;
 mod archive;
+mod decompress;
 mod file;
 mod hash;
-mod sevenzip;
-mod zip;
 
 use algo::HashAlgo;
 

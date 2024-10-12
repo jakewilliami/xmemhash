@@ -1,4 +1,4 @@
-use super::archive::EnclosedFile;
+use crate::archive::EnclosedFile;
 use rpassword::prompt_password;
 use std::{
     fs::File,

@@ -1,5 +1,5 @@
-use super::sevenzip;
-use super::zip;
+use super::decompress::sevenzip;
+use super::decompress::zip;
 use std::{path::PathBuf, str::FromStr};
 
 pub enum ArchiveType {
