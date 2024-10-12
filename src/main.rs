@@ -33,7 +33,6 @@ struct Cli {
     /// The hashing algorithm to use for the resulting hash
     #[clap(value_enum)]
     #[arg(
-        short = 'h',
         long = "hash",
         action = ArgAction::Set,
         num_args = 0..=1,
