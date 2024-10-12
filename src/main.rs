@@ -1,5 +1,6 @@
 use clap::{crate_authors, crate_name, crate_version, ArgAction, Parser};
 use std::process;
+use tabular::{row, Table};
 
 mod algo;
 mod archive;
@@ -56,12 +57,13 @@ fn main() {
         process::exit(1);
     }
 
+    let mut table = Table::new("{:>}  {:<}");
     for file in archive::get_file_data_from_archive(&cli.file_path) {
         let name = file.name();
         let hash = hash::get_hash_from_enclosed_file(&file, &cli.hash);
-        // TODO: format tabular like sha256sum
-        println!("{hash} {name}");
+        table.add_row(row!(hash, name));
     }
+    print!("{}", table);
 
     process::exit(0);
 }
