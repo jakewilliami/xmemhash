@@ -11,7 +11,6 @@ use algo::HashAlgo;
 
 // TODO:
 //   - Support 7z
-//   - Support password-protected archives
 //   - Support gz and/or tar?
 
 #[derive(Parser)]
