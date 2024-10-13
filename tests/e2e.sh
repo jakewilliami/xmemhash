@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+# End-to-end test suite, testing the functionality of the entire programme
+# for different input types (zip and 7z)
+#
+# TODO: Does not yet test input files with more complex file heirarchy
+# TODO: Add Rust unit tests
+#
+# Run via:
+#   $ ./build.sh && ./tests/e2e.sh || rm test-xmemhash.*
+
+set -xe
+trap 'exit 1' INT
+
+FILE="test-xmemhash.txt"
+
+if [ -e "$FILE" ]; then
+    echo "Cannot test on '$FILE' as it already exists"
+    exit 1
+fi
+
+echo -n "xmemhash" > "$FILE"
+
+FILE_BASE="$(basename -- $FILE)"
+FILE_ZIP="${FILE}.zip"
+FILE_ZIP_P="${FILE%.*}.pass.${FILE_BASE##*.}.zip"
+FILE_7Z="${FILE}.7z"
+FILE_7Z_P="${FILE%.*}.pass.${FILE_BASE##*.}.7z"
+
+zip "$FILE_ZIP" "$FILE" > /dev/null
+zip -P infected "$FILE_ZIP_P" "$FILE" > /dev/null
+7z a "$FILE_7Z" "$FILE" > /dev/null
+7z a -pinfected "$FILE_7Z_P" "$FILE" > /dev/null
+
+sha256sum "$FILE"
+
+./xmemhash "$FILE_ZIP"
+./xmemhash "$FILE_ZIP_P"
+./xmemhash "$FILE_7Z"
+./xmemhash "$FILE_7Z_P"
+
+rm "$FILE"
+rm "$FILE_ZIP"
+rm "$FILE_ZIP_P"
+rm "$FILE_7Z"
+rm "$FILE_7Z_P"
