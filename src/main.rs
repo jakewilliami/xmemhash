@@ -4,14 +4,17 @@ use tabular::{row, Table};
 
 mod algo;
 mod archive;
+mod decompress;
 mod file;
 mod hash;
 
 use algo::HashAlgo;
 
 // TODO:
-//   - Support 7z
 //   - Support gz and/or tar?
+//   - Add support for sha1 and md5 hashes
+//   - Consider using something like compress-tools or archive-reader or unzip-rs instead of handling separate archive formats myself.  See also tools like ouch-org/ouch
+//   - Support nested folders
 
 #[derive(Parser)]
 #[command(
@@ -53,7 +56,8 @@ fn main() {
     }
 
     let mut table = Table::new("{:>}  {:<}");
-    for file in archive::get_file_data_from_archive(&cli.file_path) {
+    let archive_type = file::archive_type(&cli.file_path);
+    for file in archive::get_file_data_from_archive(&cli.file_path, archive_type) {
         let name = file.name();
         let hash = hash::get_hash_from_enclosed_file(&file, &cli.hash);
         table.add_row(row!(hash, name));

@@ -67,3 +67,13 @@ pub fn path_invalid_reason(path: &String) -> String {
             .expect("invalid path must have associated reason")
     }
 }
+
+// Get type of archive from file path
+//
+// Assumes path is valid and file is an archive type!  use path_is_valid to confirm
+pub fn archive_type(path: &String) -> ArchiveType {
+    let kind = infer::get_from_path(path)
+        .expect("file should be readable")
+        .expect("file type should be obtainable");
+    ArchiveType::from_str(kind.mime_type()).unwrap()
+}
