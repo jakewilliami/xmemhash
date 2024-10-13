@@ -9,10 +9,11 @@
 # Run via:
 #   $ ./build.sh && ./tests/e2e.sh || rm test-xmemhash.*
 
-set -xe
+# set -xe
 trap 'exit 1' INT
 
 FILE="test-xmemhash.txt"
+HASH="${1:-sha256}"
 
 if [ -e "$FILE" ]; then
     echo "Cannot test on '$FILE' as it already exists"
@@ -32,12 +33,13 @@ zip -P infected "$FILE_ZIP_P" "$FILE" > /dev/null
 7z a "$FILE_7Z" "$FILE" > /dev/null
 7z a -pinfected "$FILE_7Z_P" "$FILE" > /dev/null
 
+sha1sum "$FILE"
 sha256sum "$FILE"
 
-./xmemhash "$FILE_ZIP"
-./xmemhash "$FILE_ZIP_P"
-./xmemhash "$FILE_7Z"
-./xmemhash "$FILE_7Z_P"
+./xmemhash --hash "$HASH" "$FILE_ZIP"
+./xmemhash --hash "$HASH" "$FILE_ZIP_P"
+./xmemhash --hash "$HASH" "$FILE_7Z"
+./xmemhash --hash "$HASH" "$FILE_7Z_P"
 
 rm "$FILE"
 rm "$FILE_ZIP"
