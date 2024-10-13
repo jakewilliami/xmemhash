@@ -12,3 +12,11 @@ The inner file is never written to disc for security purposes.
 $ ./build.sh
 $ ./xmemhash -h
 ```
+
+## Archive Support
+
+Currently, xmemhash supports:
+  - Zip
+  - 7Zip
+
+Both can optionally be password-protected.
