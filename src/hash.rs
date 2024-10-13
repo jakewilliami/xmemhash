@@ -1,6 +1,7 @@
 use super::algo::HashAlgo;
 use super::archive::EnclosedFile;
 use digest::Digest;
+use md5::Md5;
 use sha1::Sha1;
 use sha2::Sha256;
 
@@ -18,6 +19,7 @@ where
 
 fn get_hash_from_data(data: &Vec<u8>, algo: &HashAlgo) -> String {
     match algo {
+        HashAlgo::Md5 => compute_hash::<Md5>(data),
         HashAlgo::Sha1 => compute_hash::<Sha1>(data),
         HashAlgo::Sha256 => compute_hash::<Sha256>(data),
     }

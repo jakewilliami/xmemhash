@@ -33,8 +33,9 @@ zip -P infected "$FILE_ZIP_P" "$FILE" > /dev/null
 7z a "$FILE_7Z" "$FILE" > /dev/null
 7z a -pinfected "$FILE_7Z_P" "$FILE" > /dev/null
 
-sha1sum "$FILE"
-sha256sum "$FILE"
+echo -n "MD5:    "; md5sum "$FILE"
+echo -n "SHA1:   "; sha1sum "$FILE"
+echo -n "SHA256: "; sha256sum "$FILE"
 
 ./xmemhash --hash "$HASH" "$FILE_ZIP"
 ./xmemhash --hash "$HASH" "$FILE_ZIP_P"
