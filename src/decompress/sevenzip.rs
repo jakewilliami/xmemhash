@@ -1,10 +1,14 @@
 use crate::archive::EnclosedFile;
 use rpassword::prompt_password;
-use sevenz_rust::{Error::PasswordRequired, Password, SevenZReader};
+use sevenz_rust::{
+    Error::{MaybeBadPassword, PasswordRequired},
+    Password, SevenZReader,
+};
 use std::{
     fs::File,
     io::{Read, Seek},
     path::PathBuf,
+    process,
 };
 
 fn sz_archive_is_encrypted<R>(szr: &mut SevenZReader<R>) -> bool
@@ -12,6 +16,9 @@ where
     R: Seek,
     R: Read,
 {
+    // You have to try to read the file entries in order to check if you get
+    // a password required error
+    //
     // TODO: is there a better way to check if the file is encrypted?  E.g.
     //   https://docs.rs/crate/sevenz-rust/0.6.1/source/src/decoders.rs#142
     matches!(szr.for_each_entries(|_, _| Ok(true)), Err(PasswordRequired))
@@ -24,6 +31,25 @@ fn try_decrypt_from_7z_archive(path: &String) -> SevenZReader<File> {
     SevenZReader::open(path, password).unwrap()
 }
 
+fn sz_archive_is_unencrypted<R>(szr: &mut SevenZReader<R>) -> bool
+where
+    R: Seek,
+    R: Read,
+{
+    // You have to try to read the file contents within the archive before we know
+    // if the password was (maybe) incorrect
+    //
+    // TODO: is there a better way to check if the file is still encrypted?
+    !matches!(
+        szr.for_each_entries(|_file, reader| {
+            let mut content = Vec::new();
+            let _ = reader.read_to_end(&mut content)?;
+            Ok(true)
+        }),
+        Err(MaybeBadPassword(..))
+    )
+}
+
 pub fn get_file_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
     // Specify blank password if not password protected
     let password = Password::from("");
@@ -32,6 +58,12 @@ pub fn get_file_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
     // Request password from user if required
     if sz_archive_is_encrypted(&mut szr) {
         szr = try_decrypt_from_7z_archive(path);
+        if !sz_archive_is_unencrypted(&mut szr) {
+            // TODO: try three more times
+            // TODO: Note that MaybeBadPassword could also be due to corrupted 7z file
+            eprintln!("Incorrect password");
+            process::exit(1);
+        }
     }
 
     let mut files = Vec::new();
