@@ -28,24 +28,26 @@ impl ArchiveUtils for String {
 
     fn count_archive_files(&self) -> usize {
         let mut archive = self.to_archive();
-        // TODO: better unwrap
-        let entries = archive.entries().unwrap();
-        entries.filter_map(|e| e.ok()).count()
+        if let Ok(entries) = archive.entries() {
+            entries.filter_map(|e| e.ok()).count()
+        } else {
+            0
+        }
     }
 
     fn count_archive_entries(&self) -> usize {
         let mut archive = self.to_archive();
-        // TODO: better unwrap
-        archive.entries().unwrap().count()
+        if let Ok(entries) = archive.entries() {
+            entries.count()
+        } else {
+            0
+        }
     }
 
     fn is_tar_gz(&self) -> bool {
-        if self.count_archive_files() == 0 || self.count_archive_entries() == 0 {
-            return false;
-        }
-
-        let mut archive = self.to_archive();
-        archive.entries().is_ok()
+        // A file is an archive (.tar) file if it contains at least one valid entry
+        // The file is necessarily compressed (.gz) if we got to this function from archive.rs
+        !(self.count_archive_files() == 0 || self.count_archive_entries() == 0)
     }
 }
 
