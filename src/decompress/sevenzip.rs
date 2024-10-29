@@ -86,19 +86,18 @@ pub fn get_file_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
     // through the source code, I found that support for AES256SHA256 is locked behind the
     // "aes256" feature.  I thought I'd have to do weird things with
     // `sevenz_rust::aes256sha256::AesEncoderOptions` but it's all good!
-    let _ = szr
-        .for_each_entries(|file, reader| {
-            let mut content = Vec::new();
-            let _ = reader.read_to_end(&mut content)?;
-            let file_name = file.name.clone();
-            files.push(EnclosedFile {
-                path: Some(PathBuf::from(file_name)),
-                bytes: content,
-            });
+    szr.for_each_entries(|file, reader| {
+        let mut content = Vec::new();
+        let _ = reader.read_to_end(&mut content)?;
+        let file_name = file.name.clone();
+        files.push(EnclosedFile {
+            path: Some(PathBuf::from(file_name)),
+            bytes: content,
+        });
 
-            Ok(true)
-        })
-        .unwrap();
+        Ok(true)
+    })
+    .unwrap();
 
     files
 }

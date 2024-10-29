@@ -37,7 +37,7 @@ impl From<&String> for PathValid {
         if let Some(kind) = kind {
             // Valid file to extract if the matcher type is an archive
             if kind.matcher_type() == infer::MatcherType::Archive {
-                if let Ok(_) = ArchiveType::from_str(kind.mime_type()) {
+                if ArchiveType::from_str(kind.mime_type()).is_ok() {
                     PathValid::valid()
                 } else {
                     PathValid::invalid("unsupported archive type")

@@ -48,14 +48,12 @@ where
 {
     if !zip_archive_is_encrypted(archive) {
         archive.by_index(i).unwrap()
+    } else if let Ok(file) = try_decrypt_from_zip_archive_index(archive, i) {
+        file
     } else {
-        if let Ok(file) = try_decrypt_from_zip_archive_index(archive, i) {
-            file
-        } else {
-            // TODO: try 3 more times before giving up.  I am having issues with mutable lifetimes of the archive object so I am just trying once for now
-            eprintln!("Incorrect password");
-            process::exit(1);
-        }
+        // TODO: try 3 more times before giving up.  I am having issues with mutable lifetimes of the archive object so I am just trying once for now
+        eprintln!("Incorrect password");
+        process::exit(1);
     }
 }
 
