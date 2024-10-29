@@ -7,44 +7,54 @@ use std::{
 };
 use tar::Archive;
 
-fn into_gz_decoder(path: &String) -> GzDecoder<File> {
-    let file = File::open(path).unwrap();
-    GzDecoder::new(file)
+trait ArchiveUtils {
+    fn into_gz_decoder(&self) -> GzDecoder<File>;
+    fn into_archive(&self) -> Archive<GzDecoder<File>>;
+    fn count_archive_files(&self) -> usize;
+    fn count_archive_entries(&self) -> usize;
+    fn is_tar_gz(&self) -> bool;
 }
 
-fn into_archive(path: &String) -> Archive<GzDecoder<File>> {
-    let gzd = into_gz_decoder(path);
-    Archive::new(gzd)
-}
-
-fn count_archive_files(path: &String) -> usize {
-    let mut archive = into_archive(path);
-    // TODO: better unwrap
-    let entries = archive.entries().unwrap();
-    entries.filter_map(|e| e.ok()).count()
-}
-
-fn count_archive_entries(path: &String) -> usize {
-    let mut archive = into_archive(path);
-    // TODO: better unwrap
-    archive.entries().unwrap().count()
-}
-
-fn is_tar_gz(path: &String) -> bool {
-    if count_archive_files(path) == 0 || count_archive_entries(path) == 0 {
-        return false;
+impl ArchiveUtils for String {
+    fn into_gz_decoder(&self) -> GzDecoder<File> {
+        let file = File::open(self).unwrap();
+        GzDecoder::new(file)
     }
 
-    let mut archive = into_archive(path);
-    archive.entries().is_ok()
+    fn into_archive(&self) -> Archive<GzDecoder<File>> {
+        let gzd = self.into_gz_decoder();
+        Archive::new(gzd)
+    }
+
+    fn count_archive_files(&self) -> usize {
+        let mut archive = self.into_archive();
+        // TODO: better unwrap
+        let entries = archive.entries().unwrap();
+        entries.filter_map(|e| e.ok()).count()
+    }
+
+    fn count_archive_entries(&self) -> usize {
+        let mut archive = self.into_archive();
+        // TODO: better unwrap
+        archive.entries().unwrap().count()
+    }
+
+    fn is_tar_gz(&self) -> bool {
+        if self.count_archive_files() == 0 || self.count_archive_entries() == 0 {
+            return false;
+        }
+
+        let mut archive = self.into_archive();
+        archive.entries().is_ok()
+    }
 }
 
 pub fn get_files_from_tarball(path: &String) -> Vec<EnclosedFile> {
     let mut files = Vec::new();
 
-    if is_tar_gz(path) {
+    if path.is_tar_gz() {
         // https://rust-lang-nursery.github.io/rust-cookbook/compression/tar.html#decompress-a-tarball-while-removing-a-prefix-from-the-paths
-        let mut archive = into_archive(path);
+        let mut archive = path.into_archive();
         archive
             .entries()
             .unwrap()
@@ -60,7 +70,7 @@ pub fn get_files_from_tarball(path: &String) -> Vec<EnclosedFile> {
             });
     } else {
         // If `Archive::new` failed then the file was just a .gz, not .tar.gz
-        let mut gzd = into_gz_decoder(path);
+        let mut gzd = path.into_gz_decoder();
 
         // We have to construct the file name based on given path because it has no associated metadata in the gzip format
         let path = Path::new(path).file_stem().map(PathBuf::from);
