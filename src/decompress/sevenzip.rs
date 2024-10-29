@@ -50,7 +50,7 @@ where
     )
 }
 
-pub fn get_file_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
+pub fn get_files_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
     // Specify blank password if not password protected
     let password = Password::from("");
     let mut szr = SevenZReader::open(path, password).unwrap();

@@ -39,7 +39,7 @@ impl FromStr for ArchiveType {
 // Returns a vector of collections of bytes pertaining to each file
 pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<EnclosedFile> {
     match archive_type {
-        ArchiveType::Zip => zip::get_file_data_from_zip_archive(path),
-        ArchiveType::SevenZip => sevenzip::get_file_from_7z_archive(path),
+        ArchiveType::Zip => zip::get_files_from_zip_archive(path),
+        ArchiveType::SevenZip => sevenzip::get_files_from_7z_archive(path),
     }
 }
