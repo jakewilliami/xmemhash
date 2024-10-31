@@ -44,10 +44,13 @@ impl From<&String> for PathValid {
                 if ArchiveType::from_str(kind.mime_type()).is_ok() {
                     PathValid::valid()
                 } else {
-                    PathValid::invalid("unsupported archive type")
+                    PathValid::invalid(&format!(
+                        "unsupported archive type \"{}\"",
+                        kind.mime_type()
+                    ))
                 }
             } else {
-                PathValid::invalid("file is not a valid archive")
+                PathValid::invalid(&format!("invalid file type \"{}\"", kind.mime_type()))
             }
         } else {
             // Cannot get file type, so we must assume the input was not an archive
