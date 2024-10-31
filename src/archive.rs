@@ -1,10 +1,10 @@
-use super::decompress::sevenzip;
-use super::decompress::zip;
+use super::decompress::{sevenzip, tarball, zip};
 use std::{path::PathBuf, str::FromStr};
 
 pub enum ArchiveType {
     Zip,
     SevenZip,
+    Tarball,
 }
 
 pub struct EnclosedFile {
@@ -31,6 +31,7 @@ impl FromStr for ArchiveType {
         match input {
             "application/zip" => Ok(ArchiveType::Zip),
             "application/x-7z-compressed" => Ok(ArchiveType::SevenZip),
+            "application/gzip" => Ok(ArchiveType::Tarball),
             _ => Err(()),
         }
     }
@@ -39,7 +40,8 @@ impl FromStr for ArchiveType {
 // Returns a vector of collections of bytes pertaining to each file
 pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<EnclosedFile> {
     match archive_type {
-        ArchiveType::Zip => zip::get_file_data_from_zip_archive(path),
-        ArchiveType::SevenZip => sevenzip::get_file_from_7z_archive(path),
+        ArchiveType::Zip => zip::get_files_from_zip_archive(path),
+        ArchiveType::SevenZip => sevenzip::get_files_from_7z_archive(path),
+        ArchiveType::Tarball => tarball::get_files_from_tarball(path),
     }
 }
