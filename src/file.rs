@@ -9,6 +9,7 @@ use std::{
     path::Path,
     str::FromStr,
 };
+use strum::IntoEnumIterator;
 
 struct PathValid {
     is_valid: bool,
@@ -49,9 +50,14 @@ impl From<&String> for PathValid {
                 if ArchiveType::from_str(kind.mime_type()).is_ok() {
                     PathValid::valid()
                 } else {
+                    let supported_archive_types = ArchiveType::iter()
+                        .map(String::from)
+                        .collect::<Vec<_>>()
+                        .join(", ");
                     PathValid::invalid(&format!(
-                        "unsupported archive type \"{}\"",
-                        kind.mime_type()
+                        "unsupported archive type \"{}\"; supported types: {}",
+                        kind.mime_type(),
+                        supported_archive_types,
                     ))
                 }
             } else {
