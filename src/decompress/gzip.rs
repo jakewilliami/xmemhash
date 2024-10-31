@@ -1,3 +1,7 @@
+//! Handle gzip archive format
+//!
+//! Read archive files from gzip and tarball (.tar.gz) files.  Both types have the same MIME type, so we handle these together (though, see [`tar`](super::tar)).  NOTE: gzip does not support encryption
+
 use crate::archive::EnclosedFile;
 use flate2::read::GzDecoder;
 use std::{

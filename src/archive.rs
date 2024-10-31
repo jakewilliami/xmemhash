@@ -1,3 +1,7 @@
+//! Handle different archive types
+//!
+//! Different archive types ([`ArchiveType`]) require different handling ([`decompress`](crate::decompress))
+
 use super::decompress::{gzip, sevenzip, zip};
 use std::{path::PathBuf, str::FromStr};
 
