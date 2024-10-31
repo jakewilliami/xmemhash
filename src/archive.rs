@@ -4,7 +4,9 @@
 
 use super::decompress::{gzip, sevenzip, tar, zip};
 use std::{path::PathBuf, str::FromStr};
+use strum::EnumIter;
 
+#[derive(EnumIter)]
 pub enum ArchiveType {
     Zip,
     SevenZip,
@@ -40,6 +42,17 @@ impl FromStr for ArchiveType {
             "application/x-tar" => Ok(ArchiveType::Tar),
             _ => Err(()),
         }
+    }
+}
+
+impl From<ArchiveType> for String {
+    fn from(archive_type: ArchiveType) -> Self {
+        String::from(match archive_type {
+            ArchiveType::Zip => "zip",
+            ArchiveType::SevenZip => "7zip",
+            ArchiveType::Gzip => "gzip",
+            ArchiveType::Tar => "tar",
+        })
     }
 }
 

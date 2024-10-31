@@ -3,7 +3,13 @@
 //! Infer type of archive, if valid ([`ArchiveType`]), and associated error reporting
 
 use super::archive::ArchiveType;
-use std::{path::Path, str::FromStr};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+    str::FromStr,
+};
+use strum::IntoEnumIterator;
 
 struct PathValid {
     is_valid: bool,
@@ -44,14 +50,26 @@ impl From<&String> for PathValid {
                 if ArchiveType::from_str(kind.mime_type()).is_ok() {
                     PathValid::valid()
                 } else {
-                    PathValid::invalid("unsupported archive type")
+                    let supported_archive_types = ArchiveType::iter()
+                        .map(String::from)
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    PathValid::invalid(&format!(
+                        "unsupported archive type \"{}\"; supported types: {}",
+                        kind.mime_type(),
+                        supported_archive_types,
+                    ))
                 }
             } else {
-                PathValid::invalid("file is not a valid archive")
+                PathValid::invalid(&format!("invalid file type \"{}\"", kind.mime_type()))
             }
         } else {
             // Cannot get file type, so we must assume the input was not an archive
-            PathValid::invalid("cannot get file type")
+            if path.is_plain_text() {
+                PathValid::invalid("file is plain text")
+            } else {
+                PathValid::invalid("cannot get file type")
+            }
         }
     }
 }
@@ -80,4 +98,45 @@ pub fn archive_type(path: &String) -> ArchiveType {
         .expect("file should be readable")
         .expect("file type should be obtainable");
     ArchiveType::from_str(kind.mime_type()).unwrap()
+}
+
+trait FileTypeInference {
+    fn is_plain_text(&self) -> bool;
+}
+
+impl FileTypeInference for Path {
+    // Plain text, but not necessarily ASCII
+    fn is_plain_text(&self) -> bool {
+        let file = File::open(self).unwrap();
+        let reader = BufReader::new(file);
+
+        // Try reading the file as UTF-8 directly
+        for line in reader.lines() {
+            match line {
+                Ok(line) => {
+                    // Check each character for being printable or whitespace
+                    if !line.chars().all(|c| c.is_whitespace() || c.is_printable()) {
+                        return false;
+                    }
+                }
+                Err(_) => {
+                    // Non-UTF-8 sequence encountered
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+}
+
+trait CharExt {
+    fn is_printable(&self) -> bool;
+}
+
+impl CharExt for char {
+    fn is_printable(&self) -> bool {
+        // Allow whitespace but disallow other control chars
+        !self.is_control() || self.is_whitespace()
+    }
 }
