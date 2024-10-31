@@ -51,7 +51,7 @@ impl ArchiveUtils for String {
     }
 }
 
-pub fn get_files_from_tarball(path: &String) -> Vec<EnclosedFile> {
+pub fn get_files_from_gzip_or_tarball(path: &String) -> Vec<EnclosedFile> {
     let mut files = Vec::new();
 
     if path.is_tar_gz() {
