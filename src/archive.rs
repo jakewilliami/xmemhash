@@ -2,13 +2,14 @@
 //!
 //! Different archive types ([`ArchiveType`]) require different handling ([`decompress`](crate::decompress))
 
-use super::decompress::{gzip, sevenzip, zip};
+use super::decompress::{gzip, sevenzip, tar, zip};
 use std::{path::PathBuf, str::FromStr};
 
 pub enum ArchiveType {
     Zip,
     SevenZip,
     Gzip,
+    Tar,
 }
 
 pub struct EnclosedFile {
@@ -36,6 +37,7 @@ impl FromStr for ArchiveType {
             "application/zip" => Ok(ArchiveType::Zip),
             "application/x-7z-compressed" => Ok(ArchiveType::SevenZip),
             "application/gzip" => Ok(ArchiveType::Gzip),
+            "application/x-tar" => Ok(ArchiveType::Tar),
             _ => Err(()),
         }
     }
@@ -47,5 +49,6 @@ pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> V
         ArchiveType::Zip => zip::get_files_from_zip_archive(path),
         ArchiveType::SevenZip => sevenzip::get_files_from_7z_archive(path),
         ArchiveType::Gzip => gzip::get_files_from_gzip_or_tarball(path),
+        ArchiveType::Tar => tar::get_files_from_tar(path),
     }
 }

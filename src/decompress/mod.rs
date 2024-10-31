@@ -4,4 +4,5 @@
 
 pub mod gzip;
 pub mod sevenzip;
+pub mod tar;
 pub mod zip;
