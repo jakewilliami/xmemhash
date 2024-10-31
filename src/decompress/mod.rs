@@ -1,5 +1,8 @@
-// A module to handle different decompression formats
+//! A module to handle different decompression formats
+//!
+//! Formats such as zip, 7z, &c.
 
+pub mod gzip;
 pub mod sevenzip;
-pub mod tarball;
+pub mod tar;
 pub mod zip;

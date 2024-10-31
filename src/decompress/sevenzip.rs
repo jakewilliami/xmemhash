@@ -1,3 +1,7 @@
+//! Handle 7zip archive format
+//!
+//! Read archive files from (potentially password-protected) 7zip files
+
 use crate::archive::EnclosedFile;
 use rpassword::prompt_password;
 use sevenz_rust::{

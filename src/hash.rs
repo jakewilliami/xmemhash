@@ -1,3 +1,7 @@
+//! Compute hash
+//!
+//! Based on hashing algorithm (see [`HashAlgo`]), compute the hash of some given data
+
 use super::algo::HashAlgo;
 use super::archive::EnclosedFile;
 use digest::Digest;

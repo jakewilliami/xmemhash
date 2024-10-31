@@ -1,3 +1,7 @@
+//! Handle zip archive format
+//!
+//! Read archive files from (potentially password-protected) zip files
+
 use crate::archive::EnclosedFile;
 use rpassword::prompt_password;
 use std::{

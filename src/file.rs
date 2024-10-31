@@ -1,3 +1,7 @@
+//! Handle file type inference
+//!
+//! Infer type of archive, if valid ([`ArchiveType`]), and associated error reporting
+
 use super::archive::ArchiveType;
 use std::{path::Path, str::FromStr};
 
