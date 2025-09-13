@@ -1,6 +1,9 @@
-### Silly macOS Things ###
-.DS_Store
+### Misc ###
+# bibtex auto folder when using emacs and auctex
+auto/
 
+# Silly macOS things
+.DS_Store
 
 ### Archive Assets ###
 *.zip
@@ -20,4 +23,3 @@ xmemhash
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
-
