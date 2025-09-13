@@ -9,7 +9,7 @@ The inner file is never written to disc for security purposes.
 ## Quick Start
 
 ```bash
-$ ./build.sh
+$ just
 $ ./xmemhash -h
 ```
 
