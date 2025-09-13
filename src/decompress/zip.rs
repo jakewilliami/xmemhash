@@ -11,9 +11,9 @@ use std::{
     process,
 };
 use zip::{
+    ZipArchive,
     read::ZipFile,
     result::{ZipError, ZipResult},
-    ZipArchive,
 };
 
 fn zip_archive_is_encrypted<R>(archive: &mut ZipArchive<R>) -> bool

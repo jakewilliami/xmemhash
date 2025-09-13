@@ -1,6 +1,6 @@
-use clap::{crate_authors, crate_name, crate_version, ArgAction, Parser};
+use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
 use std::process;
-use tabular::{row, Table};
+use tabular::{Table, row};
 
 mod algo;
 mod archive;
