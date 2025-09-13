@@ -20,3 +20,7 @@ Currently, xmemhash supports:
   - 7Zip
 
 Both can optionally be password-protected.
+
+## Similar Projects
+
+I have written a sister package to `xmemhash` called [`crlfhash`](https://github.com/jakewilliami/crlfhash).  `crlfhash` will calculate (in-memory) the hashes of a file with different line endings (e.g., with and without a carriage return).
