@@ -18,9 +18,9 @@ $ ./xmemhash -h
 Currently, xmemhash supports:
   - Zip (`.zip`)
   - 7Zip (`.7z`)
-  - Tar (`.tar`)
-  - Tarball (`.tar.gz`)
   - Rar (`.rar`)
+  - Gzip (`.gz`; although not an archive format)
+  - Tar (`.tar`) and tarball (`.tar.gz`)
 
 Both can optionally be password-protected.
 
