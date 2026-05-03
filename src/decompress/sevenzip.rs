@@ -77,7 +77,7 @@ pub fn get_files_from_7z_archive(path: &String) -> Vec<ArchiveEntry> {
     //   https://docs.rs/crate/sevenz-rust/latest/source/examples/decompress_progress.rs.
     //
     // Which I believe handles nested files, and gives me a reader rather than just
-    // the archive entry
+    // the archive entry.
     //
     // When I was originally looking at the `sevenz-rust` crate, I was worried because
     // the API only looked like it supported decompressing *to disk* which is precisely
@@ -93,7 +93,7 @@ pub fn get_files_from_7z_archive(path: &String) -> Vec<ArchiveEntry> {
     szr.for_each_entries(|file, reader| {
         let file_name = file.name.clone();
         let data = if file.is_directory() {
-            EntryData::Directory
+            EntryData::Directory(Vec::new())
         } else {
             let mut bytes = Vec::new();
             let _ = reader.read_to_end(&mut bytes)?;

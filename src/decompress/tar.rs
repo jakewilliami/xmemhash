@@ -21,7 +21,7 @@ impl<R: Read> ReadTarArchive for Archive<R> {
             .for_each(|mut entry| {
                 let path_buf = entry.path().ok().map(|p| p.into_owned());
                 let data = if entry.header().entry_type().is_dir() {
-                    EntryData::Directory
+                    EntryData::Directory(Vec::new())
                 } else {
                     let mut bytes = Vec::new();
                     entry.read_to_end(&mut bytes).unwrap();

@@ -1,5 +1,5 @@
 use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
-use std::process;
+use std::{path::PathBuf, process};
 use tabular::{Table, row};
 
 mod algo;
@@ -7,8 +7,10 @@ mod archive;
 mod decompress;
 mod file;
 mod hash;
+mod tree;
 
 use algo::HashAlgo;
+use archive::{ArchiveEntry, EntryData};
 
 #[derive(Parser)]
 #[command(
@@ -79,47 +81,53 @@ fn main() {
         cli.recurse.min(2)
     };
 
-    // Construct hash table from contents of archives
-    for file in archive::get_file_data_from_archive(&cli.file_path, archive_type) {
-        let name = file.name();
-
-        // TODO: Since v1.6.0, we handle recursion options better.  There is still
-        // some way to go till an ideal output (see #8).  We do not yet support
-        // "extra" recursion into nested archives.
-        match recurse {
-            // Case 1: recurse is turned off.  We can log directories but only compute
-            // the hash of files in the root directory
-            0 => match hash::get_hash_from_archive_entry(&file, &cli.hash) {
-                Some(hash) if !file.is_in_subdirectory() => {
-                    table.add_row(row!(hash, name));
-                }
-                None => {
-                    table.add_row(row!(String::from("<directory>"), name));
-                }
-                // Nested files are intentionally skipped when recursion is disabled.
-                // This is the only case left unhandled, so we can do nothing
-                _ => {}
-            },
-            // Case 2: we can recurse.  Because we print the full path of the files, we
-            // can safely ignore directories
-            1 => {
-                // TODO: we will ignore directories that have no files inside.  We should
-                // do something about that?
-                if let Some(hash) = hash::get_hash_from_archive_entry(&file, &cli.hash) {
-                    table.add_row(row!(hash, name));
-                }
-            }
-            // Case 3: we will recurse into nested archives, but we have not yet implemented
-            // this
-            2 => {
-                todo!("recursion into archives not yet supported")
-            }
-            // Fallback case: we only support recursion levels 0–2, no further
-            _ => unreachable!(),
-        }
+    if recurse > 1 {
+        todo!("recursion into archives not yet supported")
     }
+
+    // Construct hash table from contents of archives
+    //
+    // TODO: Since v1.6.0–v1.6.1, we handle recursion options better.  There is still some
+    // way to go till an ideal output (see #8).  We do not yet support "extra" recursion
+    // into nested archives.
+    let entries = archive::get_file_data_from_archive(&cli.file_path, archive_type);
+    add_entries_to_table(&mut table, &entries, &cli.hash, recurse, None);
 
     print!("{}", table);
 
     process::exit(0);
+}
+
+fn add_entries_to_table(
+    table: &mut Table,
+    entries: &[ArchiveEntry],
+    algo: &HashAlgo,
+    recurse: u8,
+    prefix: Option<&str>,
+) {
+    for entry in entries {
+        let name = match prefix {
+            Some(p) => PathBuf::from(p).join(entry.name()),
+            None => PathBuf::from(entry.name()),
+        };
+        let name = name.to_string_lossy().to_string();
+
+        match &entry.data {
+            EntryData::File(bytes) => {
+                let hash = hash::get_hash_from_data(bytes, algo);
+                table.add_row(row!(hash, name));
+            }
+            EntryData::Directory(_) if entry.is_empty_directory() => {
+                table.add_row(row!(String::from("<empty directory>"), name));
+            }
+            EntryData::Directory(children) => match recurse {
+                0 => {
+                    table.add_row(row!(String::from("<directory>"), name));
+                }
+                _ => {
+                    add_entries_to_table(table, children, algo, recurse, Some(&name));
+                }
+            },
+        }
+    }
 }

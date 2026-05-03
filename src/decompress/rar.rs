@@ -80,7 +80,7 @@ pub fn get_files_from_rar_archive(path: &String) -> Vec<ArchiveEntry> {
                     archive = header.skip().unwrap();
                     files.push(ArchiveEntry {
                         path: Some(filename),
-                        data: EntryData::Directory,
+                        data: EntryData::Directory(Vec::new()),
                     });
                 } else {
                     match header.read() {

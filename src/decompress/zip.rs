@@ -80,7 +80,7 @@ pub fn get_files_from_zip_archive(path: &String) -> Vec<ArchiveEntry> {
     for i in 0..archive.len() {
         let mut file = get_files_from_zip_archive_index(&mut archive, i);
         let data = if file.is_dir() {
-            EntryData::Directory
+            EntryData::Directory(Vec::new())
         } else {
             EntryData::File(get_bytes_from_zip_file(&mut file))
         };

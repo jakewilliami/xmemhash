@@ -3,7 +3,6 @@
 //! Based on hashing algorithm (see [`HashAlgo`]), compute the hash of some given data
 
 use super::algo::HashAlgo;
-use super::archive::{ArchiveEntry, EntryData};
 use digest::Digest;
 use md5::Md5;
 use sha1::Sha1;
@@ -21,17 +20,10 @@ where
     format!("{:x}", hash)
 }
 
-fn get_hash_from_data(data: &Vec<u8>, algo: &HashAlgo) -> String {
+pub fn get_hash_from_data(data: &Vec<u8>, algo: &HashAlgo) -> String {
     match algo {
         HashAlgo::Md5 => compute_hash::<Md5>(data),
         HashAlgo::Sha1 => compute_hash::<Sha1>(data),
         HashAlgo::Sha256 => compute_hash::<Sha256>(data),
-    }
-}
-
-pub fn get_hash_from_archive_entry(file: &ArchiveEntry, algo: &HashAlgo) -> Option<String> {
-    match &file.data {
-        EntryData::File(bytes) => Some(get_hash_from_data(bytes, algo)),
-        EntryData::Directory => None,
     }
 }

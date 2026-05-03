@@ -2,7 +2,10 @@
 //!
 //! Different archive types ([`ArchiveType`]) require different handling ([`decompress`](crate::decompress))
 
-use super::decompress::{gzip, rar, sevenzip, tar, zip};
+use super::{
+    decompress::{gzip, rar, sevenzip, tar, zip},
+    tree,
+};
 use std::{path::PathBuf, str::FromStr};
 use strum::EnumIter;
 
@@ -17,7 +20,7 @@ pub enum ArchiveType {
 
 pub enum EntryData {
     File(Vec<u8>),
-    Directory,
+    Directory(Vec<ArchiveEntry>),
 }
 
 pub struct ArchiveEntry {
@@ -30,16 +33,14 @@ impl ArchiveEntry {
     pub fn name(&self) -> String {
         self.path
             .as_ref()
-            .and_then(|name| name.to_str())
+            .and_then(|p| p.file_name())
+            .and_then(|n| n.to_str())
             .unwrap_or("")
             .to_string()
     }
 
-    pub fn is_in_subdirectory(&self) -> bool {
-        self.path
-            .as_ref()
-            .map(|p| p.components().count() > 1)
-            .unwrap_or(false)
+    pub fn is_empty_directory(&self) -> bool {
+        matches!(&self.data, EntryData::Directory(children) if children.is_empty())
     }
 }
 
@@ -72,11 +73,12 @@ impl From<ArchiveType> for String {
 
 // Returns a vector of collections of bytes pertaining to each file
 pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<ArchiveEntry> {
-    match archive_type {
+    let flat = match archive_type {
         ArchiveType::Zip => zip::get_files_from_zip_archive(path),
         ArchiveType::SevenZip => sevenzip::get_files_from_7z_archive(path),
         ArchiveType::Gzip => gzip::get_files_from_gzip_or_tarball(path),
         ArchiveType::Tar => tar::get_files_from_tar(path),
         ArchiveType::Rar => rar::get_files_from_rar_archive(path),
-    }
+    };
+    tree::build_tree(flat)
 }
