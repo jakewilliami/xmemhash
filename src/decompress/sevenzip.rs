@@ -2,7 +2,7 @@
 //!
 //! Read archive files from (potentially password-protected) 7zip files
 
-use crate::archive::EnclosedFile;
+use crate::archive::{ArchiveEntry, EntryData};
 use rpassword::prompt_password;
 use sevenz_rust::{
     Error::{MaybeBadPassword, PasswordRequired},
@@ -54,7 +54,7 @@ where
     )
 }
 
-pub fn get_files_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
+pub fn get_files_from_7z_archive(path: &String) -> Vec<ArchiveEntry> {
     // Specify blank password if not password protected
     let password = Password::from("");
     let mut szr = SevenZReader::open(path, password).unwrap();
@@ -91,12 +91,17 @@ pub fn get_files_from_7z_archive(path: &String) -> Vec<EnclosedFile> {
     // "aes256" feature.  I thought I'd have to do weird things with
     // `sevenz_rust::aes256sha256::AesEncoderOptions` but it's all good!
     szr.for_each_entries(|file, reader| {
-        let mut content = Vec::new();
-        let _ = reader.read_to_end(&mut content)?;
         let file_name = file.name.clone();
-        files.push(EnclosedFile {
+        let data = if file.is_directory() {
+            EntryData::Directory
+        } else {
+            let mut bytes = Vec::new();
+            let _ = reader.read_to_end(&mut bytes)?;
+            EntryData::File(bytes)
+        };
+        files.push(ArchiveEntry {
             path: Some(PathBuf::from(file_name)),
-            bytes: content,
+            data,
         });
 
         Ok(true)

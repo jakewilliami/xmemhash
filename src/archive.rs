@@ -14,12 +14,17 @@ pub enum ArchiveType {
     Tar,
 }
 
-pub struct EnclosedFile {
-    pub path: Option<PathBuf>,
-    pub bytes: Vec<u8>,
+pub enum EntryData {
+    File(Vec<u8>),
+    Directory,
 }
 
-impl EnclosedFile {
+pub struct ArchiveEntry {
+    pub path: Option<PathBuf>,
+    pub data: EntryData,
+}
+
+impl ArchiveEntry {
     // Extract name from file path, or default to an empty string
     pub fn name(&self) -> String {
         self.path
@@ -57,7 +62,7 @@ impl From<ArchiveType> for String {
 }
 
 // Returns a vector of collections of bytes pertaining to each file
-pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<EnclosedFile> {
+pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<ArchiveEntry> {
     match archive_type {
         ArchiveType::Zip => zip::get_files_from_zip_archive(path),
         ArchiveType::SevenZip => sevenzip::get_files_from_7z_archive(path),

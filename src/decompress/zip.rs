@@ -2,7 +2,7 @@
 //!
 //! Read archive files from (potentially password-protected) zip files
 
-use crate::archive::EnclosedFile;
+use crate::archive::{ArchiveEntry, EntryData};
 use rpassword::prompt_password;
 use std::{
     fs::File,
@@ -31,10 +31,10 @@ where
     )
 }
 
-fn try_decrypt_from_zip_archive_index<R>(
-    archive: &mut ZipArchive<R>,
+fn try_decrypt_from_zip_archive_index<'a, R>(
+    archive: &'a mut ZipArchive<R>,
     i: usize,
-) -> ZipResult<ZipFile>
+) -> ZipResult<ZipFile<'a>>
 where
     R: Seek,
     R: Read,
@@ -45,7 +45,7 @@ where
     archive.by_index_decrypt(i, password)
 }
 
-fn get_files_from_zip_archive_index<R>(archive: &mut ZipArchive<R>, i: usize) -> ZipFile
+fn get_files_from_zip_archive_index<'a, R>(archive: &'a mut ZipArchive<R>, i: usize) -> ZipFile<'a>
 where
     R: Seek,
     R: Read,
@@ -70,7 +70,7 @@ fn get_bytes_from_zip_file(file: &mut ZipFile) -> Vec<u8> {
 }
 
 // Returns a vector of collections of bytes pertaining to each file
-pub fn get_files_from_zip_archive(path: &String) -> Vec<EnclosedFile> {
+pub fn get_files_from_zip_archive(path: &String) -> Vec<ArchiveEntry> {
     let path = Path::new(path);
     let file = File::open(path).unwrap();
     let buf = BufReader::new(file);
@@ -79,10 +79,14 @@ pub fn get_files_from_zip_archive(path: &String) -> Vec<EnclosedFile> {
     let mut files = Vec::new();
     for i in 0..archive.len() {
         let mut file = get_files_from_zip_archive_index(&mut archive, i);
-        let bytes = get_bytes_from_zip_file(&mut file);
-        files.push(EnclosedFile {
+        let data = if file.is_dir() {
+            EntryData::Directory
+        } else {
+            EntryData::File(get_bytes_from_zip_file(&mut file))
+        };
+        files.push(ArchiveEntry {
             path: file.enclosed_name(),
-            bytes,
+            data,
         });
     }
 

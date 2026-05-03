@@ -59,8 +59,12 @@ fn main() {
     let archive_type = file::archive_type(&cli.file_path);
     for file in archive::get_file_data_from_archive(&cli.file_path, archive_type) {
         let name = file.name();
-        let hash = hash::get_hash_from_enclosed_file(&file, &cli.hash);
-        table.add_row(row!(hash, name));
+        // TODO: at some point we should recurse into the directories to pull out
+        //   more content to hash; maybe even recurse into nested ZIPs.  For now
+        //   we can show a place holder.  See #8
+        let key = hash::get_hash_from_archive_entry(&file, &cli.hash)
+            .unwrap_or(String::from("<directory>"));
+        table.add_row(row!(key, name));
     }
     print!("{}", table);
 
