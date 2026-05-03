@@ -65,7 +65,7 @@ pub fn get_files_from_7z_archive(path: &String) -> Vec<ArchiveEntry> {
         if !sz_archive_is_unencrypted(&mut szr) {
             // TODO: try three more times
             // TODO: Note that MaybeBadPassword could also be due to corrupted 7z file
-            eprintln!("Incorrect password");
+            eprintln!("[ERROR] Incorrect password");
             process::exit(1);
         }
     }

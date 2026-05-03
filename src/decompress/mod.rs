@@ -3,6 +3,7 @@
 //! Formats such as zip, 7z, &c.
 
 pub mod gzip;
+pub mod rar;
 pub mod sevenzip;
 pub mod tar;
 pub mod zip;

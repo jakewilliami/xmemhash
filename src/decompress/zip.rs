@@ -56,7 +56,7 @@ where
         file
     } else {
         // TODO: try 3 more times before giving up.  I am having issues with mutable lifetimes of the archive object so I am just trying once for now
-        eprintln!("Incorrect password");
+        eprintln!("[ERROR] Incorrect password");
         process::exit(1);
     }
 }

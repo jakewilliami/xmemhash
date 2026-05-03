@@ -20,6 +20,7 @@ Currently, xmemhash supports:
   - 7Zip (`.7z`)
   - Tar (`.tar`)
   - Tarball (`.tar.gz`)
+  - Rar (`.rar`)
 
 Both can optionally be password-protected.
 
