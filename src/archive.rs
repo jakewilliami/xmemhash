@@ -34,6 +34,13 @@ impl ArchiveEntry {
             .unwrap_or("")
             .to_string()
     }
+
+    pub fn is_in_subdirectory(&self) -> bool {
+        self.path
+            .as_ref()
+            .map(|p| p.components().count() > 1)
+            .unwrap_or(false)
+    }
 }
 
 impl FromStr for ArchiveType {
