@@ -30,7 +30,6 @@ impl ArchiveEntry {
     pub fn name(&self) -> String {
         self.path
             .as_ref()
-            .and_then(|name| name.file_name())
             .and_then(|name| name.to_str())
             .unwrap_or("")
             .to_string()
