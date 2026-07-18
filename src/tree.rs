@@ -2,7 +2,7 @@
 //!
 //! Archive handlers return a flat [`Vec<ArchiveEntry>`] where directories and files are siblings.  We need to compile this into a tree structure
 
-use super::archive::{ArchiveEntry, EntryData};
+use crate::archive::{ArchiveEntry, EntryData};
 use std::path::{Component, PathBuf};
 
 // Assemble tree from flat list by matching each entry's path components against

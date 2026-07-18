@@ -2,7 +2,7 @@
 //!
 //! Infer type of archive, if valid ([`ArchiveType`]), and associated error reporting
 
-use super::archive::ArchiveType;
+use crate::archive::ArchiveType;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -98,6 +98,11 @@ pub fn archive_type(path: &String) -> ArchiveType {
         .expect("file should be readable")
         .expect("file type should be obtainable");
     ArchiveType::from_str(kind.mime_type()).unwrap()
+}
+
+// Variant of `archive_type` from bytes, rather than file path
+pub fn archive_type_from_bytes(bytes: &[u8]) -> Option<ArchiveType> {
+    infer::get(bytes).and_then(|kind| ArchiveType::from_str(kind.mime_type()).ok())
 }
 
 trait FileTypeInference {

@@ -3,7 +3,10 @@
 //! Read archive files from tar files.  .tar.gz files are handled separately in [`gzip`](super::gzip).  NOTE: tar does not support encryption
 
 use crate::archive::{ArchiveEntry, EntryData};
-use std::{fs::File, io::Read};
+use std::{
+    fs::File,
+    io::{Cursor, Read},
+};
 use tar::Archive;
 
 pub trait ReadTarArchive {
@@ -40,4 +43,11 @@ impl<R: Read> ReadTarArchive for Archive<R> {
 pub fn get_files_from_tar(path: &String) -> Vec<ArchiveEntry> {
     let file = File::open(path).unwrap();
     Archive::new(file).get_files_from_tar()
+}
+
+// Returns a vector of archive entries pertaining to each file, from buffer
+//
+// This is used for recursing into nested archives
+pub fn get_files_from_tar_bytes(bytes: Vec<u8>) -> Vec<ArchiveEntry> {
+    Archive::new(Cursor::new(bytes)).get_files_from_tar()
 }

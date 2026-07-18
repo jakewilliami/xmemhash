@@ -4,7 +4,7 @@
 
 use crate::archive::{ArchiveEntry, EntryData};
 use rpassword::prompt_password;
-use std::process;
+use std::{path::Path, process};
 use unrar::{
     error::{Code, UnrarError},
     {Archive, CursorBeforeHeader, OpenArchive, Process},
@@ -102,4 +102,15 @@ pub fn get_files_from_rar_archive(path: &String) -> Vec<ArchiveEntry> {
     }
 
     files
+}
+
+// Reading a RAR file from a byte stream is intentionally not supported due to limitations
+// in the underlying C code:
+//   https://github.com/muja/unrar.rs/blob/0628d12b/README.md#L151
+pub fn get_files_from_rar_bytes(
+    bytes: Vec<u8>,
+    _allow_password_prompt: bool,
+    _context: &Path,
+) -> Result<Vec<ArchiveEntry>, Vec<u8>> {
+    Err(bytes)
 }

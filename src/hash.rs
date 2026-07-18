@@ -2,7 +2,7 @@
 //!
 //! Based on hashing algorithm (see [`HashAlgo`]), compute the hash of some given data
 
-use super::algo::HashAlgo;
+use crate::algo::HashAlgo;
 use digest::Digest;
 use md5::Md5;
 use sha1::Sha1;

@@ -2,14 +2,17 @@
 //!
 //! Different archive types ([`ArchiveType`]) require different handling ([`decompress`](crate::decompress))
 
-use super::{
+use crate::{
     decompress::{gzip, rar, sevenzip, tar, zip},
     tree,
 };
-use std::{path::PathBuf, str::FromStr};
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use strum::EnumIter;
 
-#[derive(EnumIter)]
+#[derive(EnumIter, Clone, Copy)]
 pub enum ArchiveType {
     Zip,
     SevenZip,
@@ -21,6 +24,10 @@ pub enum ArchiveType {
 pub enum EntryData {
     File(Vec<u8>),
     Directory(Vec<ArchiveEntry>),
+    // The expanded contents of a nested archive found during recursion (see `recurse.rs`).
+    // This is distinct from `Directory` so output formatting can tell this apart from a
+    // subdirectory.
+    NestedArchive(Vec<ArchiveEntry>),
 }
 
 pub struct ArchiveEntry {
@@ -40,7 +47,11 @@ impl ArchiveEntry {
     }
 
     pub fn is_empty_directory(&self) -> bool {
-        matches!(&self.data, EntryData::Directory(children) if children.is_empty())
+        matches!(
+            &self.data,
+            EntryData::Directory(children) | EntryData::NestedArchive(children)
+            if children.is_empty()
+        )
     }
 }
 
@@ -71,7 +82,7 @@ impl From<ArchiveType> for String {
     }
 }
 
-// Returns a vector of collections of bytes pertaining to each file
+// Returns a vector of archive entries pertaining to each file
 pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> Vec<ArchiveEntry> {
     let flat = match archive_type {
         ArchiveType::Zip => zip::get_files_from_zip_archive(path),
@@ -81,4 +92,26 @@ pub fn get_file_data_from_archive(path: &String, archive_type: ArchiveType) -> V
         ArchiveType::Rar => rar::get_files_from_rar_archive(path),
     };
     tree::build_tree(flat)
+}
+
+// Returns a vector of archive entries pertaining to each file, from a buffer
+//
+// This is used for recursion into nested archives.  If we are not able to recurse, we return
+// the bytes of the file as an error value so that we can still compute its hash.
+pub fn get_file_data_from_bytes(
+    bytes: Vec<u8>,
+    archive_type: ArchiveType,
+    allow_nested_encryption: bool,
+    context: &Path,
+) -> Result<Vec<ArchiveEntry>, Vec<u8>> {
+    let flat = match archive_type {
+        ArchiveType::Zip => zip::get_files_from_zip_bytes(bytes, allow_nested_encryption, context),
+        ArchiveType::SevenZip => {
+            sevenzip::get_files_from_7z_bytes(bytes, allow_nested_encryption, context)
+        }
+        ArchiveType::Gzip => Ok(gzip::get_files_from_gzip_or_tarball_bytes(bytes, context)),
+        ArchiveType::Tar => Ok(tar::get_files_from_tar_bytes(bytes)),
+        ArchiveType::Rar => rar::get_files_from_rar_bytes(bytes, allow_nested_encryption, context),
+    }?;
+    Ok(tree::build_tree(flat))
 }

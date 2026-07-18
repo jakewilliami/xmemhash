@@ -1,16 +1,15 @@
-use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
-use std::{path::Path, process};
-use tabular::{Table, row};
-
 mod algo;
 mod archive;
 mod decompress;
+mod display;
 mod file;
 mod hash;
+mod recurse;
 mod tree;
 
 use algo::HashAlgo;
-use archive::{ArchiveEntry, EntryData};
+use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
+use std::{path::Path, process};
 
 #[derive(Parser)]
 #[command(
@@ -41,7 +40,7 @@ struct Cli {
 
     /// Recurse into substructures
     ///
-    /// Recurse is set to 1 (`-r`) by default, in order to recurse into subdirectories.  Use `--no-recurse` to disable this.  Set this to 2 (`-rr`) if you want to recurse into nested archives (not yet supported).
+    /// Recurse is set to 1 (`-r`) by default, in order to recurse into subdirectories.  Use `--no-recurse` to disable this.  Set this to 2 (`-rr`) if you want to recurse into nested archives.  If this is set to 3 (`-rrr`), this will even decrypt nested archives if they are encrypted, but this will ask for a password for every encrypted nested archive it finds.
     #[arg(
         long = "recurse",
         short = 'r',
@@ -85,105 +84,22 @@ fn main() {
     let recurse = if cli.no_recurse {
         0
     } else {
-        cli.recurse.min(2)
+        cli.recurse.min(3)
     };
 
-    if recurse > 1 {
-        todo!("recursion into archives not yet supported")
-    }
-
     let entries = archive::get_file_data_from_archive(&cli.file_path, archive_type);
+    let entries = if recurse > 1 {
+        recurse::expand_nested_archives(entries, recurse, Path::new(&cli.file_path))
+    } else {
+        entries
+    };
 
     // Construct hash table from contents of archives
-    //
-    // TODO: Since v1.6.0/v1.7.0, we handle recursion options better (see #8).  We do not
-    // yet support "extra" recursion into nested archives.
     if cli.tree {
-        print_tree(
-            &entries,
-            &cli.hash,
-            recurse,
-            Path::new(""),
-            Some(&cli.file_path),
-        );
+        display::print_tree(&entries, &cli.hash, recurse, Some(&cli.file_path));
     } else {
-        let mut table = Table::new("{:>}  {:<}");
-        add_entries_to_table(&mut table, &entries, &cli.hash, recurse, Path::new(""));
-        print!("{}", table);
+        display::print_table(&entries, &cli.hash, recurse);
     }
 
     process::exit(0);
-}
-
-fn add_entries_to_table(
-    table: &mut Table,
-    entries: &[ArchiveEntry],
-    algo: &HashAlgo,
-    recurse: u8,
-    prefix: &Path,
-) {
-    for entry in entries {
-        let name = prefix.join(entry.name());
-        let name_str = name.to_string_lossy().to_string();
-
-        match &entry.data {
-            EntryData::File(bytes) => {
-                let hash = hash::get_hash_from_data(bytes, algo);
-                table.add_row(row!(hash, name_str));
-            }
-            EntryData::Directory(_) if entry.is_empty_directory() => {
-                table.add_row(row!(String::from("<empty directory>"), name_str));
-            }
-            EntryData::Directory(children) => match recurse {
-                0 => {
-                    table.add_row(row!(String::from("<directory>"), name_str));
-                }
-                1 => {
-                    add_entries_to_table(table, children, algo, recurse, &name);
-                }
-                _ => {
-                    add_entries_to_table(table, children, algo, recurse, &name);
-                }
-            },
-        }
-    }
-}
-
-fn print_tree(
-    entries: &[ArchiveEntry],
-    algo: &HashAlgo,
-    recurse: u8,
-    prefix: &Path,
-    label: Option<&str>,
-) {
-    if let Some(label) = label {
-        println!("{}", label);
-    }
-
-    for (i, entry) in entries.iter().enumerate() {
-        let is_last = i == entries.len() - 1;
-        let connector = if is_last { "└── " } else { "├── " };
-        let child_prefix = if is_last { "    " } else { "│   " };
-
-        let name = entry.name();
-
-        match &entry.data {
-            EntryData::File(bytes) => {
-                let hash = hash::get_hash_from_data(bytes, algo);
-                println!("{}{}{}  {}", prefix.display(), connector, hash, name);
-            }
-            EntryData::Directory(_) if entry.is_empty_directory() => {
-                println!("{}{}{}/  <empty>", prefix.display(), connector, name);
-            }
-            EntryData::Directory(children) => match recurse {
-                0 => {
-                    println!("{}{}{}/  <directory>", prefix.display(), connector, name);
-                }
-                _ => {
-                    println!("{}{}{}/", prefix.display(), connector, name);
-                    print_tree(children, algo, recurse, &prefix.join(child_prefix), None);
-                }
-            },
-        }
-    }
 }
