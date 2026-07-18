@@ -4,7 +4,7 @@
 
 use crate::archive::{ArchiveEntry, EntryData};
 use rpassword::prompt_password;
-use sevenz_rust::{Error::PasswordRequired, Password, SevenZReader};
+use sevenz_rust2::{ArchiveReader, Error::PasswordRequired, Password};
 use std::{
     fs::File,
     io::{Read, Seek},
@@ -12,7 +12,7 @@ use std::{
     process,
 };
 
-fn sz_archive_is_unencrypted<R>(szr: &mut SevenZReader<R>) -> bool
+fn sz_archive_is_unencrypted<R>(szr: &mut ArchiveReader<R>) -> bool
 where
     R: Seek + Read,
 {
@@ -29,11 +29,11 @@ where
     .is_ok()
 }
 
-fn try_decrypt_from_7z_archive(path: &String) -> SevenZReader<File> {
+fn try_decrypt_from_7z_archive(path: &String) -> ArchiveReader<File> {
     let password = prompt_password("Enter password: ").unwrap();
     let password = Password::from(password.as_str());
 
-    let mut szr = match SevenZReader::open(path, password) {
+    let mut szr = match ArchiveReader::open(path, password) {
         Ok(szr) => szr,
         Err(_) => {
             eprintln!("[ERROR] Incorrect password");
@@ -52,7 +52,7 @@ fn try_decrypt_from_7z_archive(path: &String) -> SevenZReader<File> {
 pub fn get_files_from_7z_archive(path: &String) -> Vec<ArchiveEntry> {
     // TODO: try three more times if password did not work?
     // TODO: Note that MaybeBadPassword could also be due to corrupted 7z files
-    let mut szr = match SevenZReader::open(path, Password::from("")) {
+    let mut szr = match ArchiveReader::open(path, Password::from("")) {
         Ok(mut szr) => {
             if sz_archive_is_unencrypted(&mut szr) {
                 szr
