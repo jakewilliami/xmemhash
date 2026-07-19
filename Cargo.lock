@@ -1366,7 +1366,7 @@ dependencies = [
 
 [[package]]
 name = "xmemhash"
-version = "1.8.1"
+version = "1.8.2"
 dependencies = [
  "clap",
  "colored",

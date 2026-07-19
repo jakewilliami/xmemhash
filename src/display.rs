@@ -30,11 +30,11 @@ fn add_entries_to_table(
                 table.add_row(row!(hash, name_str));
             }
             EntryData::Directory(_) | EntryData::NestedArchive(_) if entry.is_empty_directory() => {
-                table.add_row(row!(String::from("<empty directory>"), name_str));
+                table.add_row(row!(String::from("<empty directory>").dimmed(), name_str));
             }
             EntryData::Directory(children) => match recurse {
                 0 => {
-                    table.add_row(row!(String::from("<directory>"), name_str));
+                    table.add_row(row!(String::from("<directory>").dimmed(), name_str));
                 }
                 _ => {
                     add_entries_to_table(table, children, algo, recurse, &name);
@@ -75,11 +75,17 @@ fn print_tree_inner(
                 println!("{}{}{}  {}", prefix, connector, hash, name);
             }
             EntryData::Directory(_) | EntryData::NestedArchive(_) if entry.is_empty_directory() => {
-                println!("{}{}{}/  <empty>", prefix, connector, name);
+                println!("{}{}{}/  {}", prefix, connector, name, "<empty>".dimmed());
             }
             EntryData::Directory(children) => match recurse {
                 0 => {
-                    println!("{}{}{}/  <directory>", prefix, connector, name);
+                    println!(
+                        "{}{}{}/  {}",
+                        prefix,
+                        connector,
+                        name,
+                        "<directory>".dimmed()
+                    );
                 }
                 _ => {
                     println!("{}{}{}/", prefix, connector, name);
