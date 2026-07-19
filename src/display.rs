@@ -3,6 +3,7 @@ use crate::{
     archive::{ArchiveEntry, EntryData},
     hash,
 };
+use colored::*;
 use std::path::Path;
 use tabular::{Table, row};
 
@@ -63,8 +64,8 @@ fn print_tree_inner(
 
     for (i, entry) in entries.iter().enumerate() {
         let is_last = i == entries.len() - 1;
-        let connector = if is_last { "└── " } else { "├── " };
-        let child_prefix = if is_last { "    " } else { "│   " };
+        let connector = { if is_last { "└── " } else { "├── " } }.dimmed();
+        let child_prefix = { if is_last { "    " } else { "│   " } }.dimmed();
 
         let name = entry.name();
 

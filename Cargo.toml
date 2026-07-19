@@ -1,11 +1,12 @@
 [package]
 name = "xmemhash"
-version = "1.8.0"
+version = "1.8.1"
 edition = "2024"
 authors = ["Jake W. Ireland <jakewilliami@icloud.com>"]
 
 [dependencies]
 clap = { version = "4.5.20", features = ["cargo", "wrap_help", "derive"] }
+colored = "3.1.1"
 digest = "0.10.7"
 flate2 = "1.0.34"
 infer = "0.16.0"

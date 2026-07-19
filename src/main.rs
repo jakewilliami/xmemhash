@@ -9,7 +9,12 @@ mod tree;
 
 use algo::HashAlgo;
 use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
-use std::{path::Path, process};
+use std::{
+    env,
+    io::{self, IsTerminal},
+    path::Path,
+    process,
+};
 
 #[derive(Parser)]
 #[command(
@@ -72,6 +77,11 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
+    let is_terminal = io::stdout().is_terminal();
+    if is_set("NO_COLOR") || is_set("NO_COLOUR") || !is_terminal {
+        colored::control::set_override(false);
+    }
+
     if !file::path_is_valid(&cli.file_path) {
         eprintln!(
             "[ERROR] File is not a valid input: {}",
@@ -102,4 +112,17 @@ fn main() {
     }
 
     process::exit(0);
+}
+
+// Stolen from gl:
+//   <github.com/jakewilliami/gl/blob/9bd3fa96/src/env.rs#L1-L10>
+fn is_set(var: &str) -> bool {
+    let val = env::var(var);
+
+    // Value must be set and non-empty
+    if let Ok(val) = val {
+        !val.is_empty()
+    } else {
+        false
+    }
 }
