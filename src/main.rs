@@ -11,6 +11,7 @@ use algo::HashAlgo;
 use clap::{ArgAction, Parser, crate_authors, crate_name, crate_version};
 use std::{
     env,
+    ffi::OsStr,
     io::{self, IsTerminal},
     path::Path,
     process,
@@ -50,6 +51,7 @@ struct Cli {
         long = "recurse",
         short = 'r',
         action = ArgAction::Count,
+        // TODO: would this be better set to 2 by default?
         default_value_t = 1,
     )]
     recurse: u8,
@@ -77,11 +79,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-    let is_terminal = io::stdout().is_terminal();
-    if is_set("NO_COLOR") || is_set("NO_COLOUR") || !is_terminal {
-        colored::control::set_override(false);
-    }
-
+    // Check that file is valid
     if !file::path_is_valid(&cli.file_path) {
         eprintln!(
             "[ERROR] File is not a valid input: {}",
@@ -90,23 +88,43 @@ fn main() {
         process::exit(1);
     }
 
-    let archive_type = file::archive_type(&cli.file_path);
+    // Turn off coloured if requested or output does not support it
+    let is_terminal = io::stdout().is_terminal();
+    if is_set("NO_COLOR") || is_set("NO_COLOUR") || !is_terminal {
+        colored::control::set_override(false);
+    }
+
+    // Recurse has three levels:
+    //   0. No recurse
+    //   1. Recurse into nested subdirectories (default)
+    //   2. Recurse into nested archives, unless they are encrypted
+    //   3. Recurse into nested archives, including encrypted archives
     let recurse = if cli.no_recurse {
         0
     } else {
         cli.recurse.min(3)
     };
 
+    // Extract archive entries from input
+    let file_path = Path::new(&cli.file_path);
+    let archive_type = file::archive_type(&cli.file_path);
     let entries = archive::get_file_data_from_archive(&cli.file_path, archive_type);
+
+    // Expand nested archives if recursion flag is sufficiently large
     let entries = if recurse > 1 {
-        recurse::expand_nested_archives(entries, recurse, Path::new(&cli.file_path))
+        recurse::expand_nested_archives(entries, recurse, file_path)
     } else {
         entries
     };
 
-    // Construct hash table from contents of archives
+    // Display output
     if cli.tree {
-        display::print_tree(&entries, &cli.hash, recurse, Some(&cli.file_path));
+        display::print_tree(
+            &entries,
+            &cli.hash,
+            recurse,
+            file_path.file_name().and_then(OsStr::to_str),
+        );
     } else {
         display::print_table(&entries, &cli.hash, recurse);
     }
